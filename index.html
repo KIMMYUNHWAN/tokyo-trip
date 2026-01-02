@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도쿄 대가족 여행 실시간 플래너</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; }
+        .tab-active { background-color: #1f2937; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .uber-gradient { background: linear-gradient(135deg, #000000 0%, #333333 100%); }
+        .route-node::after { content: '→'; margin: 0 8px; color: #94a3b8; }
+        .route-node:last-child::after { content: ''; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="text-slate-900 pb-12">
+
+    <div id="app" class="max-w-5xl mx-auto px-4 pt-8">
+        <!-- Header -->
+        <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div>
+                <div class="inline-block bg-black text-white text-[10px] font-bold px-2 py-1 rounded mb-2 tracking-widest uppercase">
+                    Real-time Shared Edition
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">도쿄 대가족 우버 플래너</h1>
+                <p id="status-msg" class="text-slate-500 mt-1 text-sm"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> 서버 연결 중...</p>
+            </div>
+            <div class="flex gap-2">
+                <div class="bg-white border px-4 py-2 rounded-xl text-center shadow-sm">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">Total Pax</p>
+                    <p class="font-bold text-lg text-slate-700">9명</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="flex p-2 bg-slate-50 border-b overflow-x-auto">
+                <button onclick="changeDay(1)" id="btn-1" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 1</button>
+                <button onclick="changeDay(2)" id="btn-2" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 2</button>
+                <button onclick="changeDay(3)" id="btn-3" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 3</button>
+                <button onclick="changeDay(4)" id="btn-4" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 4</button>
+            </div>
+            <div id="day-content" class="p-6 md:p-8 min-h-[400px]"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Config (Global variables assumed provided by env)
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tokyo-9pax-trip';
+
+        let currentDay = 1;
+        let checkedStates = {};
+
+        const tripData = {
+            1: { region: "신주쿠 (Shinjuku)", spots: ["나리타 공항", "호텔 체크인", "신주쿠역 남쪽 출구", "골드 러쉬(저녁)"] },
+            2: { region: "하라주쿠 & 시부야", spots: ["다케시타 거리", "오모테산도 쇼핑", "스크램블 스퀘어", "모해지 몬자야키"] },
+            3: { region: "지유가오카 & 이케부쿠로", spots: ["지유가오카 산책", "이케부쿠로 선샤인 시티", "수족관 투어"] },
+            4: { region: "긴자 & 공항", spots: ["긴자 백화점 쇼핑", "히츠마부시 빈초(점심)", "공항 이동(14:10)"] }
+        };
+
+        // Initialize App
+        async function init() {
+            try {
+                await signInAnonymously(auth);
+                document.getElementById('status-msg').innerHTML = '<i class="fa-solid fa-cloud text-emerald-500 mr-1"></i> 실시간 공유 활성화됨';
+                
+                // Real-time listener for checked items
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'checkStatus');
+                onSnapshot(docRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        checkedStates = snapshot.data();
+                        renderContent();
+                    }
+                }, (error) => console.error("Snapshot error:", error));
+
+                renderContent();
+            } catch (err) {
+                document.getElementById('status-msg').innerText = "연결 오류가 발생했습니다.";
+            }
+        }
+
+        window.toggleCheck = async (spotId) => {
+            const newState = !checkedStates[spotId];
+            checkedStates[spotId] = newState;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'checkStatus');
+            await setDoc(docRef, checkedStates, { merge: true });
+        };
+
+        window.changeDay = (d) => {
+            currentDay = d;
+            renderContent();
+        };
+
+        function renderContent() {
+            document.querySelectorAll('.day-btn').forEach((b, i) => {
+                b.classList.toggle('tab-active', (i + 1) === currentDay);
+            });
+
+            const data = tripData[currentDay];
+            const content = document.getElementById('day-content');
+            
+            content.innerHTML = `
+                <div class="animate-slide-up">
+                    <h2 class="text-2xl font-bold mb-6">${data.region}</h2>
+                    <div class="space-y-4">
+                        ${data.spots.map(spot => {
+                            const isChecked = checkedStates[`day${currentDay}_${spot}`] || false;
+                            return `
+                                <div onclick="toggleCheck('day${currentDay}_${spot}')" 
+                                     class="flex items-center justify-between p-4 rounded-2xl border ${isChecked ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'} cursor-pointer transition-all">
+                                    <span class="font-medium ${isChecked ? 'text-emerald-700 line-through opacity-60' : 'text-slate-700'}">${spot}</span>
+                                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}">
+                                        ${isChecked ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        init();
+    </script>
+</body>
+</html>
