@@ -2,139 +2,195 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>도쿄 대가족 여행 실시간 플래너</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>도쿄 대가족 여행 플래너 (고속 버전)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f3f4f6; }
-        .tab-active { background-color: #1f2937; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .uber-gradient { background: linear-gradient(135deg, #000000 0%, #333333 100%); }
-        .route-node::after { content: '→'; margin: 0 8px; color: #94a3b8; }
-        .route-node:last-child::after { content: ''; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #f3f4f6; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .tab-active { 
+            background-color: #000; 
+            color: #fff; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+        .uber-card { 
+            background: linear-gradient(135deg, #000 0%, #222 100%); 
+        }
+        .route-line { 
+            position: relative; 
+            padding-left: 24px; 
+        }
+        .route-line::before { 
+            content: ''; 
+            position: absolute; 
+            left: 6px; 
+            top: 8px; 
+            bottom: -8px; 
+            width: 2px; 
+            background: #e2e8f0; 
+        }
+        .route-line:last-child::before { 
+            display: none; 
+        }
+        .route-dot { 
+            position: absolute; 
+            left: 0; 
+            top: 6px; 
+            width: 14px; 
+            height: 14px; 
+            border-radius: 50%; 
+            border: 3px solid #fff; 
+            box-shadow: 0 0 0 2px #cbd5e1; 
+            background: #64748b; 
+            transition: all 0.3s; 
+        }
+        .checked .route-dot { 
+            background: #10b981; 
+            box-shadow: 0 0 0 2px #10b981; 
+        }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(8px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .animate-fade { 
+            animation: fadeIn 0.3s ease-out forwards; 
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="text-slate-900 pb-12">
+<body class="text-slate-900 pb-28">
 
-    <div id="app" class="max-w-5xl mx-auto px-4 pt-8">
-        <!-- Header -->
-        <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-            <div>
-                <div class="inline-block bg-black text-white text-[10px] font-bold px-2 py-1 rounded mb-2 tracking-widest uppercase">
-                    Real-time Shared Edition
+    <div class="max-w-md mx-auto px-5 pt-8">
+        <!-- 상단 헤더 -->
+        <header class="mb-8">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <span class="inline-block bg-amber-400 text-black text-[10px] font-extrabold px-2 py-0.5 rounded-full mb-1">FINAL SCENARIO</span>
+                    <h1 class="text-2xl font-black tracking-tight leading-tight">도쿄 대가족<br>도쿄 여행 투어</h1>
                 </div>
-                <h1 class="text-3xl font-extrabold tracking-tight">도쿄 대가족 우버 플래너</h1>
-                <p id="status-msg" class="text-slate-500 mt-1 text-sm"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> 서버 연결 중...</p>
-            </div>
-            <div class="flex gap-2">
-                <div class="bg-white border px-4 py-2 rounded-xl text-center shadow-sm">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase">Total Pax</p>
-                    <p class="font-bold text-lg text-slate-700">9명</p>
+                <div class="bg-white border px-3 py-2 rounded-2xl shadow-sm text-center">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase">Total</p>
+                    <p class="font-bold text-base leading-none">9인</p>
                 </div>
             </div>
+            <p class="text-slate-500 text-sm flex items-center gap-1">
+                <i class="fa-solid fa-bolt text-amber-500"></i> 불필요한 코스를 제외한 고속 버전
+            </p>
         </header>
 
-        <!-- Main Content -->
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="flex p-2 bg-slate-50 border-b overflow-x-auto">
-                <button onclick="changeDay(1)" id="btn-1" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 1</button>
-                <button onclick="changeDay(2)" id="btn-2" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 2</button>
-                <button onclick="changeDay(3)" id="btn-3" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 3</button>
-                <button onclick="changeDay(4)" id="btn-4" class="day-btn flex-1 min-w-[100px] py-3 px-4 rounded-xl font-bold text-sm transition-all text-slate-400">DAY 4</button>
+        <!-- 일자 선택 탭 -->
+        <nav class="flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
+            <button onclick="renderDay(1)" id="tab-1" class="day-btn shrink-0 px-6 py-3 rounded-2xl font-bold text-sm bg-white border border-slate-200 text-slate-400 transition-all">DAY 1</button>
+            <button onclick="renderDay(2)" id="tab-2" class="day-btn shrink-0 px-6 py-3 rounded-2xl font-bold text-sm bg-white border border-slate-200 text-slate-400 transition-all">DAY 2</button>
+            <button onclick="renderDay(3)" id="tab-3" class="day-btn shrink-0 px-6 py-3 rounded-2xl font-bold text-sm bg-white border border-slate-200 text-slate-400 transition-all">DAY 3</button>
+            <button onclick="renderDay(4)" id="tab-4" class="day-btn shrink-0 px-6 py-3 rounded-2xl font-bold text-sm bg-white border border-slate-200 text-slate-400 transition-all">DAY 4</button>
+        </nav>
+
+        <!-- 메인 콘텐츠 영역 -->
+        <main id="content" class="animate-fade"></main>
+    </div>
+
+    <!-- 하단 고정 우버 전략 바 -->
+    <div id="uber-strategy" class="fixed bottom-0 left-0 right-0 p-4 max-w-md mx-auto z-50">
+        <div class="uber-card text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-white/10">
+            <div>
+                <p class="text-[10px] text-white/50 font-bold uppercase mb-1">Mobility Strategy</p>
+                <p id="uber-text" class="text-[13px] font-medium leading-tight"></p>
             </div>
-            <div id="day-content" class="p-6 md:p-8 min-h-[400px]"></div>
+            <div class="bg-white/20 p-2 rounded-xl text-center min-w-[54px] backdrop-blur-md">
+                <p class="text-[8px] font-bold opacity-70">UNIT</p>
+                <p class="font-bold text-base leading-none">X 2</p>
+            </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Config (Global variables assumed provided by env)
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tokyo-9pax-trip';
+    <script>
+        const tripData = {
+            1: {
+                region: "신주쿠 (Shinjuku)",
+                route: ["나리타 공항 도착", "아리아케 호텔 체크인", "신주쿠역 남쪽 출구", "신주쿠 타임스퀘어 주변", "호텔 복귀"],
+                uber: "호텔 ↔ 신주쿠역 남쪽 출구 구간 차량 2대 상시 호출"
+            },
+            2: {
+                region: "하라주쿠 & 시부야",
+                route: ["호텔 출발", "하라주쿠역 도착", "오모테산도 쇼핑 거리", "시부야 스크램블 스퀘어", "호텔 복귀"],
+                uber: "호텔→하라주쿠 / 시부야→호텔 장거리 이동 차량 2대 이용"
+            },
+            3: {
+                region: "지유가오카 & 이케부쿠로",
+                route: ["호텔 출발", "지유가오카 거리 산책", "이케부쿠로 이동", "이케부쿠로 선샤인 시티", "호텔 복귀"],
+                uber: "지역 간 이동 시 차량 2대 호출 (이동 효율 최우선)"
+            },
+            4: {
+                region: "긴자 (Ginza) & 공항",
+                route: ["호텔 체크아웃", "긴자 백화점 및 명품 거리", "호텔 짐 픽업", "나리타 공항 T3 이동"],
+                uber: "14:10 공항 드랍오프용 차량 2대 사전 예약 필수",
+                info: "제주항공 7C1108 (18:10 출발)"
+            }
+        };
 
         let currentDay = 1;
-        let checkedStates = {};
+        let checks = JSON.parse(localStorage.getItem('tokyo_9pax_checks_v4') || '{}');
 
-        const tripData = {
-            1: { region: "신주쿠 (Shinjuku)", spots: ["나리타 공항", "호텔 체크인", "신주쿠역 남쪽 출구", "골드 러쉬(저녁)"] },
-            2: { region: "하라주쿠 & 시부야", spots: ["다케시타 거리", "오모테산도 쇼핑", "스크램블 스퀘어", "모해지 몬자야키"] },
-            3: { region: "지유가오카 & 이케부쿠로", spots: ["지유가오카 산책", "이케부쿠로 선샤인 시티", "수족관 투어"] },
-            4: { region: "긴자 & 공항", spots: ["긴자 백화점 쇼핑", "히츠마부시 빈초(점심)", "공항 이동(14:10)"] }
-        };
-
-        // Initialize App
-        async function init() {
-            try {
-                await signInAnonymously(auth);
-                document.getElementById('status-msg').innerHTML = '<i class="fa-solid fa-cloud text-emerald-500 mr-1"></i> 실시간 공유 활성화됨';
-                
-                // Real-time listener for checked items
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'checkStatus');
-                onSnapshot(docRef, (snapshot) => {
-                    if (snapshot.exists()) {
-                        checkedStates = snapshot.data();
-                        renderContent();
-                    }
-                }, (error) => console.error("Snapshot error:", error));
-
-                renderContent();
-            } catch (err) {
-                document.getElementById('status-msg').innerText = "연결 오류가 발생했습니다.";
-            }
+        function toggleCheck(id) {
+            checks[id] = !checks[id];
+            localStorage.setItem('tokyo_9pax_checks_v4', JSON.stringify(checks));
+            renderDay(currentDay);
         }
 
-        window.toggleCheck = async (spotId) => {
-            const newState = !checkedStates[spotId];
-            checkedStates[spotId] = newState;
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'checkStatus');
-            await setDoc(docRef, checkedStates, { merge: true });
-        };
-
-        window.changeDay = (d) => {
-            currentDay = d;
-            renderContent();
-        };
-
-        function renderContent() {
-            document.querySelectorAll('.day-btn').forEach((b, i) => {
-                b.classList.toggle('tab-active', (i + 1) === currentDay);
+        function renderDay(day) {
+            currentDay = day;
+            document.querySelectorAll('.day-btn').forEach((btn, idx) => {
+                btn.classList.toggle('tab-active', (idx + 1) === day);
             });
 
-            const data = tripData[currentDay];
-            const content = document.getElementById('day-content');
-            
+            const data = tripData[day];
+            const content = document.getElementById('content');
+            const uberText = document.getElementById('uber-text');
+            uberText.innerText = data.uber;
+
             content.innerHTML = `
-                <div class="animate-slide-up">
-                    <h2 class="text-2xl font-bold mb-6">${data.region}</h2>
-                    <div class="space-y-4">
-                        ${data.spots.map(spot => {
-                            const isChecked = checkedStates[`day${currentDay}_${spot}`] || false;
+                <div class="mb-6">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Day ${day} Region</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-2xl font-black text-slate-900">${data.region}</h3>
+                        ${data.info ? `<span class="bg-rose-500 text-white text-[10px] font-extrabold px-2 py-1 rounded-lg shrink-0 shadow-sm">${data.info}</span>` : ''}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">
+                    <div class="space-y-6">
+                        ${data.route.map((node, i) => {
+                            const id = `d${day}_${i}`;
+                            const isChecked = checks[id] || false;
                             return `
-                                <div onclick="toggleCheck('day${currentDay}_${spot}')" 
-                                     class="flex items-center justify-between p-4 rounded-2xl border ${isChecked ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'} cursor-pointer transition-all">
-                                    <span class="font-medium ${isChecked ? 'text-emerald-700 line-through opacity-60' : 'text-slate-700'}">${spot}</span>
-                                    <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center ${isChecked ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}">
-                                        ${isChecked ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                                <div onclick="toggleCheck('${id}')" class="route-line ${isChecked ? 'checked' : ''} cursor-pointer active:opacity-60 transition-all">
+                                    <div class="route-dot"></div>
+                                    <div class="flex items-center justify-between pl-2">
+                                        <p class="text-[15px] font-bold ${isChecked ? 'text-slate-300 line-through' : 'text-slate-700'}">${node}</p>
+                                        ${isChecked ? '<i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>' : '<div class="w-4 h-4 rounded-full border border-slate-200"></div>'}
                                     </div>
                                 </div>
                             `;
                         }).join('')}
                     </div>
                 </div>
+                
+                <p class="mt-8 text-[11px] text-slate-400 text-center leading-relaxed">
+                    체크 표시는 본인 휴대폰에만 저장됩니다.<br>
+                    <span class="text-slate-300 font-medium">© 2026 Tokyo Family Trip Planner</span>
+                </p>
             `;
         }
 
-        init();
+        window.setDay = renderDay;
+        window.onload = () => renderDay(1);
     </script>
 </body>
 </html>
