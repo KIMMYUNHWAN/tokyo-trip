@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokyo Day 2 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6, #ec4899);
+        }
+
+        .check-item:checked + label {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-pink-500">
+                    도쿄 여행 플래너 <span class="text-slate-400 text-lg font-normal">| Day 2</span>
+                </h1>
+                <p class="text-slate-400 mt-1">하이프 & 럭셔리 빈티지 투어 (하라주쿠 - 오모테산도 - 시부야)</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="https://www.google.com/maps/dir/Harajuku+Station/BAPE+STORE+HARAJUKU/AMORE+Wardrobe/AMORE+Vintage+Omotesando/AMORE+Gentlemen/Shibuya+PARCO/Shibuya+Station/" target="_blank" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition shadow-lg">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    구글 맵 경로 열기
+                </a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Column: Timeline -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-clock text-blue-400"></i> 타임라인
+                    </h2>
+                    <div class="relative space-y-8 timeline-line pl-10 ml-2" id="timeline-container">
+                        <!-- Timeline Items will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Budget & Checklist -->
+            <div class="space-y-6">
+                <!-- Budget Card -->
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-wallet text-pink-400"></i> 예상 예산
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>식비</span>
+                            <span class="font-bold">¥8,000</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>교통비</span>
+                            <span class="font-bold">¥1,200</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border-t border-slate-700 mt-2">
+                            <span class="text-slate-400">합계 (쇼핑 제외)</span>
+                            <span class="text-xl font-bold text-blue-400">¥9,200</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shopping Checklist -->
+                <div class="glass-card p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bag-shopping text-purple-400"></i> 쇼핑 체크리스트
+                    </h2>
+                    <div class="space-y-3" id="shopping-list">
+                        <!-- Checklist will be injected here -->
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-700">
+                        <p class="text-xs text-slate-400 leading-relaxed italic">
+                            * 면세 혜택을 위해 반드시 여권을 지참하세요. <br>
+                            * AMORE 매장은 인기 지점의 경우 대기나 예약이 필요할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hotel Info -->
+                <div class="glass-card p-6 bg-gradient-to-br from-indigo-900/40 to-slate-900/40">
+                    <h2 class="text-lg font-bold mb-2">💡 복귀 팁</h2>
+                    <p class="text-sm text-slate-300">
+                        마지막 일정인 <strong>시부야역</strong>은 도쿄 내 거의 모든 지역으로 연결되는 허브입니다. 
+                        무거운 쇼핑백이 있다면 무리하게 걷지 말고 시부야역에서 바로 호텔로 이동하는 것이 가장 편합니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const itineraryData = [
+            { time: "09:30", title: "호텔 로비 미팅", desc: "지하철로 하라주쿠역 이동", icon: "fa-hotel", isMain: false },
+            { time: "11:00", title: "BAPE STORE® HARAJUKU", desc: "하라주쿠 스트릿 패션의 성지", icon: "fa-shirt", isMain: true, link: "#" },
+            { time: "12:00", title: "AMORE Wardrobe", desc: "에르메스 및 하이엔드 의류 빈티지", icon: "fa-gem", isMain: true, link: "https://share.google/6kIovkZMrte4na3PU" },
+            { time: "13:00", title: "점심 식사", desc: "오모테산도 인근 맛집 탐방", icon: "fa-utensils", isMain: false },
+            { time: "14:30", title: "AMORE Vintage Omotesando", desc: "샤넬 빈티지 스페셜리스트 매장", icon: "fa-crown", isMain: true, link: "https://share.google/4cyEGwhRTNiestrLf" },
+            { time: "15:30", title: "AMORE Gentlemen", desc: "남성용 럭셔리 & 아카이브 스토어", icon: "fa-user-tie", isMain: true, link: "https://share.google/zfiC6TC4XFP58VYOk" },
+            { time: "17:30", title: "시부야 PARCO 백화점", desc: "닌텐도/포켓몬 센터 및 BAPE 시부야점", icon: "fa-building", isMain: true },
+            { time: "19:30", title: "석식 및 복귀", desc: "시부야역에서 호텔로 출발", icon: "fa-train-subway", isMain: false }
+        ];
+
+        const shoppingItems = [
+            "BAPE 하라주쿠 (신상 체크)",
+            "AMORE Wardrobe (에르메스)",
+            "AMORE Vintage (샤넬)",
+            "AMORE Gentlemen (아카이브)",
+            "RAGTAG (디자이너 리셀)",
+            "닌텐도 도쿄 (PARCO 6F)",
+            "BAPE 시부야 (PARCO)"
+        ];
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = itineraryData.map(item => `
+                <div class="relative flex flex-col sm:flex-row sm:items-center gap-4 group">
+                    <div class="absolute -left-[30px] w-5 h-5 bg-slate-900 border-2 ${item.isMain ? 'border-pink-500 scale-125' : 'border-blue-400'} rounded-full z-10 transition group-hover:scale-150"></div>
+                    <div class="w-20 text-sm font-bold text-slate-400">${item.time}</div>
+                    <div class="flex-1 bg-slate-800/40 p-4 rounded-xl border border-slate-700 hover:border-slate-500 transition shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold flex items-center gap-2">
+                                <i class="fa-solid ${item.icon} text-sm ${item.isMain ? 'text-pink-400' : 'text-blue-400'}"></i>
+                                ${item.title}
+                            </h3>
+                            ${item.link && item.link !== '#' ? `
+                                <a href="${item.link}" target="_blank" class="text-xs text-blue-400 hover:underline">지도 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                            ` : ''}
+                        </div>
+                        <p class="text-sm text-slate-400 mt-1">${item.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('shopping-list');
+            container.innerHTML = shoppingItems.map((item, index) => `
+                <div class="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition">
+                    <input type="checkbox" id="item-${index}" class="check-item w-5 h-5 accent-pink-500 cursor-pointer">
+                    <label for="item-${index}" class="text-sm cursor-pointer select-none">${item}</label>
+                </div>
+            `).join('');
+        }
+
+        window.onload = () => {
+            renderTimeline();
+            renderChecklist();
+        };
+    </script>
+</body>
+</html>
