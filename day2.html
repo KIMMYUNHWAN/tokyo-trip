@@ -141,7 +141,7 @@
             { time: "17:30", title: "시부야 PARCO 백화점", desc: "닌텐도/포켓몬 센터 및 BAPE 시부야점", icon: "fa-building", isMain: true },
             { time: "19:30", title: "석식 및 복귀", desc: "시부야역에서 호텔로 출발", icon: "fa-train-subway", isMain: false }
         ];
-
+        
         const shoppingItems = [
             "BAPE 하라주쿠 (신상 체크)",
             "AMORE Wardrobe (에르메스)",
@@ -151,7 +151,17 @@
             "닌텐도 도쿄 (PARCO 6F)",
             "BAPE 시부야 (PARCO)"
         ];
+        <h2>🗺️ 지도 열기</h2>
 
+<!-- 장소 검색어로 열기 (가장 쉬움) -->
+<a href="https://www.google.com/maps/search/?api=1&query=Shibuya+Sky" target="_blank">
+  📍 시부야 스카이 지도 열기
+</a>
+<br>
+
+<a href="https://www.google.com/maps/search/?api=1&query=Asakusa+Sensoji" target="_blank">
+  📍 아사쿠사 센소지 지도 열기
+</a>
         function renderTimeline() {
             const container = document.getElementById('timeline-container');
             container.innerHTML = itineraryData.map(item => `
